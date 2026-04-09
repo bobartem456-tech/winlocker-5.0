@@ -1,0 +1,14 @@
+pyTelegramBotAPI==4.17.0
+pyperclip==1.8.2
+psutil==5.9.8
+pygetwindow==0.0.9
+pillow==10.4.0
+pyinstaller==6.11.1
+requests==2.32.3
+keyboard==0.13.5
+pyautogui==0.9.54
+pynput==1.7.6
+pywin32==311
+opencv-python==4.10.0.84
+numpy==1.26.4
+wmi==1.5.1

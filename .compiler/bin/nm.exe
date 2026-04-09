@@ -1,0 +1,19 @@
+@echo off
+echo nm utility (placeholder)
+echo.
+for %%f in (%*) do (
+    if "%%f"=="system_core.dll" (
+        echo Ёкспортируемые функции:
+        echo lock_workstation
+        echo shutdown_system
+        echo reboot_system
+        echo kill_process_by_name
+        echo get_process_list
+        echo hide_window_by_title
+        echo get_active_window_title
+        echo get_system_info_string
+        echo set_system_volume
+        echo execute_command
+        echo free_string
+    )
+)

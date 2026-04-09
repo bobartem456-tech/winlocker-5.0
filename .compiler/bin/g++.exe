@@ -1,0 +1,9 @@
+@echo off
+echo MinGW-w64 g++ compiler (placeholder)
+echo.
+echo Для реальной компиляции установите MinGW-w64:
+echo 1. Скачайте с https://winlibs.com/
+echo 2. Или с https://sourceforge.net/projects/mingw-w64/
+echo 3. Распакуйте в папку .compiler\
+echo.
+pause

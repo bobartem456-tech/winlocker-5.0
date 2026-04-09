@@ -1,0 +1,4 @@
+@echo off
+echo MinGW-w64 gcc compiler (placeholder)
+echo ”становите реальный MinGW-w64 дл€ компил€ции.
+pause

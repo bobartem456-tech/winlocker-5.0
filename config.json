@@ -1,0 +1,11 @@
+{
+  "devices": {
+    "default": {
+      "api_token": "8471615293:AAEqbsdNG2KTVZE5pDVCDDwZAzVlOQ4z-iU",
+      "admin_id": 6219146434,
+      "device_name": "Компьютер Саши",
+      "description": "Основной компьютер"
+    }
+  },
+  "current_device": "default"
+}
