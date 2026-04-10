@@ -19,6 +19,9 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# Константа для скрытия окон CMD (Windows)
+CREATE_NO_WINDOW = 0x08000000
+
 # --- СИСТЕМНЫЕ ФУНКЦИИ С ОБРАБОТКОЙ ОШИБОК ---
 
 def take_screenshot():

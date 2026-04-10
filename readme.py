@@ -195,7 +195,7 @@ def guide_command(message):
         )
         
         # Логируем действие
-        db.log_action(user_id, None, "guide_command", details=f"Файл: {filename}")
+        db.log_action(user_id, "guide_command", f"Файл: {filename}")
         
         # Отправляем краткий отчет (аналогично /history)
         report = f"✅ Справочник проекта сгенерирован:\n• Файл: {filename}\n• Размер: {len(guide_text.encode('utf-8'))} байт"

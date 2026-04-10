@@ -79,17 +79,15 @@ class Database:
             )
         ''')
         
-        # Таблица логов действий
+        # Таблица логов действий (обновленная структура - без device_id)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS action_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 admin_id INTEGER,
-                device_id INTEGER,
                 action_type TEXT NOT NULL,
                 action_details TEXT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (admin_id) REFERENCES admins(id),
-                FOREIGN KEY (device_id) REFERENCES devices(id)
+                FOREIGN KEY (admin_id) REFERENCES admins(id)
             )
         ''')
         
@@ -360,25 +358,23 @@ class Database:
     
     # --- Методы для логирования ---
     
-    def log_action(self, user_id, device_id=None, action=None, details=None):
-        """Логирование действия"""
+    def log_action(self, user_id, action=None, details=None):
+        """
+        Логирование действия
+        
+        Новая сигнатура (согласно ТЗ):
+        - user_id: ID пользователя
+        - action: тип действия (строка)
+        - details: детали действия (опционально)
+        """
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
             
-            # Если action передано как второй аргумент (старая сигнатура), корректируем
-            # Старые вызовы: log_action(user_id, device_id, action)
-            # Новые вызовы: log_action(user_id, action, details=None)
-            # Для совместимости анализируем аргументы
-            if action is None and device_id is not None and isinstance(device_id, str):
-                # Вероятно, device_id на самом деле action (строка), а device_id не передан
-                action = device_id
-                device_id = None
-            
             cursor.execute('''
-                INSERT INTO action_logs (admin_id, device_id, action_type, action_details)
-                VALUES (?, ?, ?, ?)
-            ''', (user_id, device_id, action, details))
+                INSERT INTO action_logs (admin_id, action_type, action_details)
+                VALUES (?, ?, ?)
+            ''', (user_id, action, details))
             
             conn.commit()
             conn.close()
